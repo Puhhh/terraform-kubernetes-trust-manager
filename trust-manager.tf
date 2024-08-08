@@ -27,6 +27,8 @@ resource "kubectl_manifest" "selfsigned-clusterissuer" {
 resource "kubectl_manifest" "trust-manager-ca" {
   depends_on = [kubectl_manifest.selfsigned-clusterissuer]
 
+  count = var.selfsigned-clusterissuer == true ? 1 : 0
+
   yaml_body = <<YAML
   apiVersion: cert-manager.io/v1
   kind: Certificate
@@ -49,6 +51,8 @@ resource "kubectl_manifest" "trust-manager-ca" {
 
 resource "kubectl_manifest" "selfsigned-ca-bundle" {
   depends_on = [kubectl_manifest.selfsigned-clusterissuer]
+
+  count = var.selfsigned-clusterissuer == true ? 1 : 0
 
   yaml_body = <<YAML
   apiVersion: trust.cert-manager.io/v1alpha1
