@@ -51,3 +51,21 @@ variable "selfsigned-clusterissuer" {
   type        = bool
   default     = false
 }
+
+variable "custom-bundle" {
+  description = "Install Custom Bundle"
+  type        = bool
+  default     = false
+}
+
+variable "custom-bundle-name" {
+  description = "Custom Bundle Name"
+  type        = string
+  default     = ""
+}
+
+variable "pem-certificate" {
+  description = "PEM Certificate"
+  type        = string
+  default     = ""
+}

@@ -70,3 +70,24 @@ resource "kubectl_manifest" "selfsigned-ca-bundle" {
         key: "trust-bundle.pem"
   YAML
 }
+
+resource "kubectl_manifest" "custom-bundle" {
+  depends_on = [helm_release.trust-manager]
+
+  count = var.custom-bundle == true ? 1 : 0
+
+  yaml_body = <<YAML
+  apiVersion: trust.cert-manager.io/v1alpha1
+  kind: Bundle
+  metadata:
+    name: ${var.custom-bundle-name} 
+  spec:
+    sources:
+      - useDefaultCAs: false
+      - inLine: |
+          ${indent(10, var.pem-certificate)}
+    target:
+      configMap:
+        key: "${var.custom-bundle-name}.pem"
+  YAML
+}
