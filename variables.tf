@@ -31,7 +31,7 @@ variable "helm-chart-repo" {
 variable "helm-chart-version" {
   description = "Helm Chart Version"
   type        = string
-  default     = "0.11.0"
+  default     = "0.12.0"
 }
 
 variable "helm-custom-values" {
@@ -46,7 +46,7 @@ variable "helm-custom-values-path" {
   default     = "values.yaml"
 }
 
-variable "selfsigned-clusterissuer" {
+variable "selfsigned-issuer" {
   description = "Use Selfsigned Clusterissuer with Random Generate CA"
   type        = bool
   default     = false

@@ -1,2 +1,2 @@
-helm-custom-values       = true
-selfsigned-clusterissuer = true
+helm-custom-values = true
+selfsigned-issuer  = true

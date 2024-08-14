@@ -9,50 +9,74 @@ resource "helm_release" "trust-manager" {
   values = var.helm-custom-values ? [file("${var.helm-custom-values-path}")] : []
 }
 
-resource "kubectl_manifest" "selfsigned-clusterissuer" {
-  depends_on = [helm_release.trust-manager]
+resource "kubernetes_manifest" "selfsigned-issuer" {
+  count = var.selfsigned-issuer == true ? 1 : 0
 
-  count = var.selfsigned-clusterissuer == true ? 1 : 0
-
-  yaml_body = <<YAML
-  apiVersion: cert-manager.io/v1
-  kind: ClusterIssuer
-  metadata:
-    name: selfsigned-cluster-issuer
-  spec:
-    selfSigned: {}
-  YAML
+  manifest = {
+    "apiVersion" = "cert-manager.io/v1"
+    "kind"       = "ClusterIssuer"
+    "metadata" = {
+      "name" = "selfsigned-issuer"
+    }
+    "spec" = {
+      "selfSigned" = {}
+    }
+  }
 }
 
-resource "kubectl_manifest" "trust-manager-ca" {
-  depends_on = [kubectl_manifest.selfsigned-clusterissuer]
+resource "kubernetes_manifest" "selfsigned-ca" {
+  count = var.selfsigned-issuer == true ? 1 : 0
 
-  count = var.selfsigned-clusterissuer == true ? 1 : 0
+  manifest = {
+    "apiVersion" = "cert-manager.io/v1"
+    "kind"       = "Certificate"
+    "metadata" = {
+      "name"      = "selfsigned-ca"
+      "namespace" = helm_release.trust-manager.namespace
+    }
+    "spec" = {
+      "commonName" = "selfsigned-ca"
+      "isCA"       = true
+      "issuerRef" = {
+        "group" = "cert-manager.io"
+        "kind"  = "ClusterIssuer"
+        "name"  = "selfsigned-issuer"
+      }
+      "privateKey" = {
+        "algorithm" = "ECDSA"
+        "size"      = 256
+      }
+      "secretName" = "selfsigned-secret"
+      "subject" = {
+        "organizations" = [
+          "kubernetes",
+        ]
+      }
+    }
+  }
+}
 
-  yaml_body = <<YAML
-  apiVersion: cert-manager.io/v1
-  kind: Certificate
-  metadata:
-    name: trust-manager-ca
-    namespace: ${helm_release.trust-manager.namespace}
-  spec:
-    isCA: true
-    commonName: trust-manager-ca
-    secretName: trust-manager-ca-secret
-    privateKey:
-      algorithm: ECDSA
-      size: 256
-    issuerRef:
-      name: selfsigned-cluster-issuer
-      kind: ClusterIssuer
-      group: cert-manager.io
-  YAML
+resource "kubernetes_manifest" "ca-issuer" {
+  count = var.selfsigned-issuer == true ? 1 : 0
+
+  manifest = {
+    "apiVersion" = "cert-manager.io/v1"
+    "kind"       = "ClusterIssuer"
+    "metadata" = {
+      "name" = "ca-issuer"
+    }
+    "spec" = {
+      "ca" = {
+        "secretName" = "selfsigned-secret"
+      }
+    }
+  }
 }
 
 resource "kubectl_manifest" "selfsigned-ca-bundle" {
-  depends_on = [kubectl_manifest.selfsigned-clusterissuer]
+  depends_on = [helm_release.trust-manager, kubernetes_manifest.selfsigned-ca]
 
-  count = var.selfsigned-clusterissuer == true ? 1 : 0
+  count = var.selfsigned-issuer == true ? 1 : 0
 
   yaml_body = <<YAML
   apiVersion: trust.cert-manager.io/v1alpha1
@@ -63,13 +87,14 @@ resource "kubectl_manifest" "selfsigned-ca-bundle" {
     sources:
       - useDefaultCAs: false
       - secret:
-          name: "trust-manager-ca-secret"
+          name: "selfsigned-secret"
           key: "tls.crt"
     target:
       configMap:
-        key: "trust-bundle.pem"
+        key: "selfsigned-ca-bundle.pem"
   YAML
 }
+
 
 resource "kubectl_manifest" "custom-bundle" {
   depends_on = [helm_release.trust-manager]
