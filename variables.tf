@@ -43,7 +43,12 @@ variable "helm-custom-values" {
 variable "helm-custom-values-path" {
   description = "Helm Custom Values Path"
   type        = string
-  default     = "values.yaml"
+  default     = ""
+
+  validation {
+    condition     = !(var.helm-custom-values && var.helm-custom-values-path == "")
+    error_message = "helm-custom-values-path must not be null when helm-custom-values is true."
+  }
 }
 
 variable "selfsigned-issuer" {
@@ -62,10 +67,20 @@ variable "custom-bundle-name" {
   description = "Custom Bundle Name"
   type        = string
   default     = ""
+
+  validation {
+    condition     = !(var.custom-bundle && var.custom-bundle-name == "")
+    error_message = "custom-bundle-name not be null when custom-bundle is true."
+  }
 }
 
 variable "pem-certificate" {
   description = "PEM Certificate"
   type        = string
   default     = ""
+
+  validation {
+    condition     = !(var.custom-bundle && var.pem-certificate == "")
+    error_message = "pem-certificate not be null when custom-bundle is true."
+  }
 }
