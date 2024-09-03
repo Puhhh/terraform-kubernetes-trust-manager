@@ -6,7 +6,7 @@ resource "helm_release" "trust-manager" {
   repository       = var.helm-chart-repo
   version          = var.helm-chart-version
 
-  values = var.helm-custom-values ? [file("${var.helm-custom-values-path}")] : []
+  values = var.helm-custom-values ? [file(var.helm-custom-values-path)] : []
 }
 
 resource "kubernetes_manifest" "selfsigned-issuer" {
