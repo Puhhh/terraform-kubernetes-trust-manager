@@ -16,12 +16,6 @@ variable "trust-manager-namespace" {
   default     = "cert-manager"
 }
 
-variable "helm-name" {
-  description = "Helm Release Name"
-  type        = string
-  default     = "trust-manager"
-}
-
 variable "helm-chart-name" {
   description = "Helm Chart Name"
   type        = string

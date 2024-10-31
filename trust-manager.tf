@@ -1,7 +1,7 @@
 resource "helm_release" "trust-manager" {
   create_namespace = var.trust-manager-namespace == "cert-manager" ? false : true
   namespace        = var.trust-manager-namespace
-  name             = var.helm-name
+  name             = var.helm-chart-name
   chart            = var.helm-chart-name
   repository       = var.helm-chart-repo
   version          = var.helm-chart-version
